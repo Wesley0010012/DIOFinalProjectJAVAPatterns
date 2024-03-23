@@ -6,6 +6,7 @@ import com.finalproject.dio.finaldioproject.data.dto.UserDTO;
 import com.finalproject.dio.finaldioproject.presentation.errors.InvalidParamError;
 import com.finalproject.dio.finaldioproject.presentation.errors.MissingParamError;
 import com.finalproject.dio.finaldioproject.presentation.helpers.HttpHelpers;
+import com.finalproject.dio.finaldioproject.presentation.protocols.CepValidator;
 import com.finalproject.dio.finaldioproject.presentation.protocols.Controller;
 import com.finalproject.dio.finaldioproject.presentation.protocols.EmailValidator;
 import com.finalproject.dio.finaldioproject.presentation.protocols.HttpRequest;
@@ -15,10 +16,12 @@ public class AddUserController implements Controller<UserDTO> {
 
     private NameValidator nameValidator = null;
     private EmailValidator emailValidator = null;
+    private CepValidator cepValidator = null;
 
-    public AddUserController(NameValidator nameValidator, EmailValidator emailValidator) {
+    public AddUserController(NameValidator nameValidator, EmailValidator emailValidator, CepValidator cepValidator) {
         this.nameValidator = nameValidator;
         this.emailValidator = emailValidator;
+        this.cepValidator = cepValidator;
     }
 
     @Override
@@ -46,6 +49,10 @@ public class AddUserController implements Controller<UserDTO> {
 
             if (!this.emailValidator.isValid(email)) {
                 return HttpHelpers.badRequest(new InvalidParamError("email"));
+            }
+
+            if (!this.cepValidator.isValid(cep)) {
+                return HttpHelpers.badRequest(new InvalidParamError("cep"));
             }
     
             return ResponseEntity.ok().body("Passed all");
