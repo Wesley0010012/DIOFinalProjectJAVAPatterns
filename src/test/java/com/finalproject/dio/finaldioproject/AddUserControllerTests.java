@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 
 import com.finalproject.dio.finaldioproject.data.dto.UserDTO;
 import com.finalproject.dio.finaldioproject.presentation.controllers.AddUserController;
+import com.finalproject.dio.finaldioproject.presentation.errors.MissingParamError;
+import com.finalproject.dio.finaldioproject.presentation.helpers.HttpHelpers;
 
 @TestComponent
 class AddUserControllerTests {
@@ -39,7 +41,7 @@ class AddUserControllerTests {
 		
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
-		ResponseEntity<String> sample = ResponseEntity.badRequest().body("Missing param: name");
+		ResponseEntity<String> sample = HttpHelpers.badRequest(new MissingParamError("name"));
 
 		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
 		assertEquals(sample.getBody(), httpResponse.getBody());
@@ -55,7 +57,7 @@ class AddUserControllerTests {
 		
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
-		ResponseEntity<String> sample = ResponseEntity.badRequest().body("Missing param: email");
+		ResponseEntity<String> sample = HttpHelpers.badRequest(new MissingParamError("email"));
 
 		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
 		assertEquals(sample.getBody(), httpResponse.getBody());
