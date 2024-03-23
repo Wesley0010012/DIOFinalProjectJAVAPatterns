@@ -13,6 +13,10 @@ public class AddUserController implements Controller {
             return ResponseEntity.badRequest().body("Missing param: name");
         }
 
+        if (httpRequest.getEmail() == null || httpRequest.getEmail() == "") {
+            return ResponseEntity.badRequest().body("Missing param: email");
+        }
+
         return ResponseEntity.ok().body("Passed all");
     }
     
