@@ -14,17 +14,20 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.TestComponent;
 import org.springframework.http.ResponseEntity;
 
+import com.finalproject.dio.finaldioproject.data.dto.CepDTO;
 import com.finalproject.dio.finaldioproject.data.dto.UserDTO;
 import com.finalproject.dio.finaldioproject.domain.models.CepModel;
 import com.finalproject.dio.finaldioproject.domain.models.UserModel;
 import com.finalproject.dio.finaldioproject.domain.usecases.FindUser;
 import com.finalproject.dio.finaldioproject.presentation.controllers.AddUserController;
+import com.finalproject.dio.finaldioproject.presentation.errors.CepNotFoundedError;
 import com.finalproject.dio.finaldioproject.presentation.errors.InvalidParamError;
 import com.finalproject.dio.finaldioproject.presentation.errors.MissingParamError;
 import com.finalproject.dio.finaldioproject.presentation.errors.UserExistsError;
 import com.finalproject.dio.finaldioproject.presentation.helpers.HttpHelpers;
 import com.finalproject.dio.finaldioproject.presentation.protocols.CepValidator;
 import com.finalproject.dio.finaldioproject.presentation.protocols.EmailValidator;
+import com.finalproject.dio.finaldioproject.presentation.protocols.FindCepProxy;
 import com.finalproject.dio.finaldioproject.presentation.protocols.HttpRequest;
 import com.finalproject.dio.finaldioproject.presentation.protocols.NameValidator;
 
@@ -36,6 +39,7 @@ class FakeUser {
 		result.setEmail("any_email");
 
 		CepModel cep = new CepModel();
+		cep.setId(1L);
 		cep.setCode("any_code");
 		cep.setCity("any_city");
 		cep.setState("any_state");
@@ -49,6 +53,21 @@ class FakeUser {
 	}
 }
 
+class FakeCep {
+	public static CepDTO makeFakeCep() {
+		CepDTO cep = new CepDTO();
+		cep.setCode("any_code");
+		cep.setCity("any_city");
+		cep.setState("any_state");
+
+		return cep;
+	}
+
+	public static CepDTO makeEmptyCep() {
+		return null;
+	}
+}
+
 @TestComponent
 class AddUserControllerTests {
 
@@ -57,6 +76,7 @@ class AddUserControllerTests {
 	private static EmailValidator emailValidatorStub = null;
 	private static CepValidator cepValidatorStub = null;
 	private static FindUser findUserStub = null;
+	private static FindCepProxy findCepProxyStub = null;
 
 	@BeforeAll
 	public static void setUp() {
@@ -64,8 +84,9 @@ class AddUserControllerTests {
 		emailValidatorStub = mock(EmailValidator.class);
 		cepValidatorStub = mock(CepValidator.class);
 		findUserStub = mock(FindUser.class);
+		findCepProxyStub = mock(FindCepProxy.class);
 		
-		sut = new AddUserController(nameValidatorStub, emailValidatorStub, cepValidatorStub, findUserStub);
+		sut = new AddUserController(nameValidatorStub, emailValidatorStub, cepValidatorStub, findUserStub, findCepProxyStub);
 	}
 
 	@BeforeEach
@@ -74,6 +95,7 @@ class AddUserControllerTests {
 		when(emailValidatorStub.isValid(any(String.class))).thenReturn(true);
 		when(cepValidatorStub.isValid(any(String.class))).thenReturn(true);
 		when(findUserStub.find(any(UserDTO.class))).thenReturn(FakeUser.makeEmptyUser());
+		when(findCepProxyStub.find(any(String.class))).thenReturn(FakeCep.makeFakeCep());
 	}
 
 	@Test
@@ -303,6 +325,27 @@ class AddUserControllerTests {
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
 		ResponseEntity<String> sample = HttpHelpers.internalServerError();
+
+		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
+		assertEquals(sample.getBody(), httpResponse.getBody());
+	}
+
+	@Test
+	@DisplayName("Should return 400 if cep not founded")
+	void cepNotFounded() {
+		UserDTO body = new UserDTO();
+		body.setName("any_name");
+		body.setEmail("any_name");
+		body.setCep("any_cep");
+
+		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
+		httpRequest.setBody(body);
+
+		when(findCepProxyStub.find(any(String.class))).thenReturn(FakeCep.makeEmptyCep());
+
+		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
+
+		ResponseEntity<String> sample = HttpHelpers.badRequest(new CepNotFoundedError(body.getCep()));
 
 		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
 		assertEquals(sample.getBody(), httpResponse.getBody());
