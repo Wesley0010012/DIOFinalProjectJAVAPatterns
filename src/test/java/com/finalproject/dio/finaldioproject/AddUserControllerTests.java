@@ -7,6 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.TestComponent;
@@ -17,6 +18,7 @@ import com.finalproject.dio.finaldioproject.presentation.controllers.AddUserCont
 import com.finalproject.dio.finaldioproject.presentation.errors.InvalidParamError;
 import com.finalproject.dio.finaldioproject.presentation.errors.MissingParamError;
 import com.finalproject.dio.finaldioproject.presentation.helpers.HttpHelpers;
+import com.finalproject.dio.finaldioproject.presentation.protocols.CepValidator;
 import com.finalproject.dio.finaldioproject.presentation.protocols.EmailValidator;
 import com.finalproject.dio.finaldioproject.presentation.protocols.HttpRequest;
 import com.finalproject.dio.finaldioproject.presentation.protocols.NameValidator;
@@ -35,18 +37,27 @@ class EmailValidatorStub implements EmailValidator {
 	}
 }
 
+class CepValidatorStub implements CepValidator {
+	@Override
+	public boolean isValid(String cep) {
+		return true;
+	}
+}
+
 @TestComponent
 class AddUserControllerTests {
 
 	private static NameValidator nameValidatorStub = null;
 	private static AddUserController sut = null;
 	private static EmailValidator emailValidatorStub = null;
+	private static CepValidator cepValidatorStub = null;
 
 	@BeforeAll
 	public static void setUp() {
 		nameValidatorStub = mock(NameValidatorStub.class);
 		emailValidatorStub = mock(EmailValidatorStub.class);
-		sut = new AddUserController(nameValidatorStub, emailValidatorStub);
+		cepValidatorStub = mock(CepValidatorStub.class);
+		sut = new AddUserController(nameValidatorStub, emailValidatorStub, cepValidatorStub);
 	}
 
 	@Test
@@ -187,12 +198,34 @@ class AddUserControllerTests {
 		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
 		httpRequest.setBody(body);
 
-		when(nameValidatorStub.isValid(body.getName())).thenReturn(true);
 		when(emailValidatorStub.isValid(body.getEmail())).thenThrow(new Error());
 		
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
 		ResponseEntity<String> sample = HttpHelpers.internalServerError();
+
+		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
+		assertEquals(sample.getBody(), httpResponse.getBody());
+	}
+
+	@Test
+	@DisplayName("Should return 400 if invalid email is provided")
+	void invalidCepProvided() {
+		UserDTO body = new UserDTO();
+		body.setName("any_name");
+		body.setEmail("any_name");
+		body.setCep("any_cep");
+
+		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
+		httpRequest.setBody(body);
+
+		when(nameValidatorStub.isValid(body.getName())).thenReturn(true);
+		when(emailValidatorStub.isValid(body.getEmail())).thenReturn(true);
+		when(cepValidatorStub.isValid(body.getCep())).thenReturn(false);
+		
+		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
+
+		ResponseEntity<String> sample = HttpHelpers.badRequest(new InvalidParamError("cep"));
 
 		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
 		assertEquals(sample.getBody(), httpResponse.getBody());
