@@ -72,6 +72,8 @@ public class AddUserController implements Controller<UserDTO> {
             return ResponseEntity.ok().body("Passed all");
         } catch(Error e) {
             return HttpHelpers.internalServerError();
+        } catch(Exception e) {
+            return HttpHelpers.internalServerError();
         }
     }
     
