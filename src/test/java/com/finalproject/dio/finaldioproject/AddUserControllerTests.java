@@ -14,6 +14,7 @@ import com.finalproject.dio.finaldioproject.data.dto.UserDTO;
 import com.finalproject.dio.finaldioproject.presentation.controllers.AddUserController;
 import com.finalproject.dio.finaldioproject.presentation.errors.MissingParamError;
 import com.finalproject.dio.finaldioproject.presentation.helpers.HttpHelpers;
+import com.finalproject.dio.finaldioproject.presentation.protocols.HttpRequest;
 
 @TestComponent
 class AddUserControllerTests {
@@ -34,10 +35,13 @@ class AddUserControllerTests {
     @Test
 	@DisplayName("Should return 400 if no name was provided")
 	void noNameWasProvided() {
-		UserDTO httpRequest = new UserDTO();
-		httpRequest.setName(null);
-		httpRequest.setEmail("any_email");
-		httpRequest.setCep("any_cep");
+		UserDTO body = new UserDTO();
+		body.setName(null);
+		body.setEmail("any_email");
+		body.setCep("any_cep");
+
+		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
+		httpRequest.setBody(body);
 		
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
@@ -50,10 +54,13 @@ class AddUserControllerTests {
     @Test
 	@DisplayName("Should return 400 if no email was provided")
 	void noEmailWasProvided() {
-		UserDTO httpRequest = new UserDTO();
-		httpRequest.setName("any_name");
-		httpRequest.setEmail("");
-		httpRequest.setCep("any_cep");
+		UserDTO body = new UserDTO();
+		body.setName("any_name");
+		body.setEmail("");
+		body.setCep("any_cep");
+
+		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
+		httpRequest.setBody(body);
 		
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
@@ -66,10 +73,13 @@ class AddUserControllerTests {
 	@Test
 	@DisplayName("Should return 400 if no cep was provided")
 	void noCepWasProvided() {
-		UserDTO httpRequest = new UserDTO();
-		httpRequest.setName("any_name");
-		httpRequest.setEmail("any_email");
-		httpRequest.setCep("");
+		UserDTO body = new UserDTO();
+		body.setName("any_name");
+		body.setEmail("any_email");
+		body.setCep("");
+
+		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
+		httpRequest.setBody(body);
 		
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
