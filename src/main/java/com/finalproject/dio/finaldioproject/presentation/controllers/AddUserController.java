@@ -20,27 +20,31 @@ public class AddUserController implements Controller<UserDTO> {
 
     @Override
     public ResponseEntity<String> handle(HttpRequest<UserDTO> httpRequest) {
-        if (httpRequest.getBody().getName() == null || httpRequest.getBody().getName() == "") {
-            return HttpHelpers.badRequest(new MissingParamError("name"));
+        try {
+            if (httpRequest.getBody().getName() == null || httpRequest.getBody().getName() == "") {
+                return HttpHelpers.badRequest(new MissingParamError("name"));
+            }
+    
+            if (httpRequest.getBody().getEmail() == null || httpRequest.getBody().getEmail() == "") {
+                return HttpHelpers.badRequest(new MissingParamError("email"));
+            }
+    
+            if (httpRequest.getBody().getCep() == null || httpRequest.getBody().getCep() == "") {
+                return HttpHelpers.badRequest(new MissingParamError("cep"));
+            }
+    
+            String name = httpRequest.getBody().getName();
+            String email = httpRequest.getBody().getEmail();
+            String cep = httpRequest.getBody().getCep();
+    
+            if (!this.nameValidator.isValid(name)) {
+                return HttpHelpers.badRequest(new InvalidParamError("name"));
+            }
+    
+            return ResponseEntity.ok().body("Passed all");
+        } catch(Error e) {
+            return HttpHelpers.internalServerError();
         }
-
-        if (httpRequest.getBody().getEmail() == null || httpRequest.getBody().getEmail() == "") {
-            return HttpHelpers.badRequest(new MissingParamError("email"));
-        }
-
-        if (httpRequest.getBody().getCep() == null || httpRequest.getBody().getCep() == "") {
-            return HttpHelpers.badRequest(new MissingParamError("cep"));
-        }
-
-        String name = httpRequest.getBody().getName();
-        String email = httpRequest.getBody().getEmail();
-        String cep = httpRequest.getBody().getCep();
-
-        if (!this.nameValidator.isValid(name)) {
-            return HttpHelpers.badRequest(new InvalidParamError("name"));
-        }
-
-        return ResponseEntity.ok().body("Passed all");
     }
     
 }
