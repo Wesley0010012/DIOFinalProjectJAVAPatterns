@@ -6,20 +6,21 @@ import com.finalproject.dio.finaldioproject.data.dto.UserDTO;
 import com.finalproject.dio.finaldioproject.presentation.errors.MissingParamError;
 import com.finalproject.dio.finaldioproject.presentation.helpers.HttpHelpers;
 import com.finalproject.dio.finaldioproject.presentation.protocols.Controller;
+import com.finalproject.dio.finaldioproject.presentation.protocols.HttpRequest;
 
-public class AddUserController implements Controller {
+public class AddUserController implements Controller<UserDTO> {
 
     @Override
-    public ResponseEntity<String> handle(UserDTO httpRequest) {
-        if (httpRequest.getName() == null || httpRequest.getName() == "") {
+    public ResponseEntity<String> handle(HttpRequest<UserDTO> httpRequest) {
+        if (httpRequest.getBody().getName() == null || httpRequest.getBody().getName() == "") {
             return HttpHelpers.badRequest(new MissingParamError("name"));
         }
 
-        if (httpRequest.getEmail() == null || httpRequest.getEmail() == "") {
+        if (httpRequest.getBody().getEmail() == null || httpRequest.getBody().getEmail() == "") {
             return HttpHelpers.badRequest(new MissingParamError("email"));
         }
 
-        if (httpRequest.getCep() == null || httpRequest.getCep() == "") {
+        if (httpRequest.getBody().getCep() == null || httpRequest.getBody().getCep() == "") {
             return HttpHelpers.badRequest(new MissingParamError("cep"));
         }
 
