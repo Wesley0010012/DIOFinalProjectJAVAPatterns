@@ -7,7 +7,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.TestComponent;
@@ -209,7 +208,7 @@ class AddUserControllerTests {
 	}
 
 	@Test
-	@DisplayName("Should return 400 if invalid email is provided")
+	@DisplayName("Should return 400 if invalid cep is provided")
 	void invalidCepProvided() {
 		UserDTO body = new UserDTO();
 		body.setName("any_name");
