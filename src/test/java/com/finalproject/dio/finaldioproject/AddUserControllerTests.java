@@ -3,10 +3,12 @@ package com.finalproject.dio.finaldioproject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.TestComponent;
@@ -26,27 +28,6 @@ import com.finalproject.dio.finaldioproject.presentation.protocols.EmailValidato
 import com.finalproject.dio.finaldioproject.presentation.protocols.HttpRequest;
 import com.finalproject.dio.finaldioproject.presentation.protocols.NameValidator;
 
-class NameValidatorStub implements NameValidator {
-	@Override
-	public boolean isValid(String name) {
-		return true;
-	}
-}
-
-class EmailValidatorStub implements EmailValidator {
-	@Override
-	public boolean isValid(String email) {
-		return true;
-	}
-}
-
-class CepValidatorStub implements CepValidator {
-	@Override
-	public boolean isValid(String cep) {
-		return true;
-	}
-}
-
 class FakeUser {
 	public static UserModel makeFakeUser() {
 		UserModel result = new UserModel();
@@ -64,17 +45,6 @@ class FakeUser {
 	}
 }
 
-class FindUserStub implements FindUser {
-
-	@Override
-	public UserModel find(UserDTO user) {
-		UserModel result = FakeUser.makeFakeUser();
-
-		return result;
-	}
-	
-}
-
 @TestComponent
 class AddUserControllerTests {
 
@@ -86,12 +56,19 @@ class AddUserControllerTests {
 
 	@BeforeAll
 	public static void setUp() {
-		nameValidatorStub = mock(NameValidatorStub.class);
-		emailValidatorStub = mock(EmailValidatorStub.class);
-		cepValidatorStub = mock(CepValidatorStub.class);
-		findUserStub = new FindUserStub();
+		nameValidatorStub = mock(NameValidator.class);
+		emailValidatorStub = mock(EmailValidator.class);
+		cepValidatorStub = mock(CepValidator.class);
+		findUserStub = mock(FindUser.class);
 		
 		sut = new AddUserController(nameValidatorStub, emailValidatorStub, cepValidatorStub, findUserStub);
+	}
+
+	@BeforeEach
+	public void resetMocks() {
+		when(nameValidatorStub.isValid(any(String.class))).thenReturn(true);
+		when(emailValidatorStub.isValid(any(String.class))).thenReturn(true);
+		when(cepValidatorStub.isValid(any(String.class))).thenReturn(true);
 	}
 
 	@Test
@@ -168,7 +145,7 @@ class AddUserControllerTests {
 		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
 		httpRequest.setBody(body);
 
-		when(nameValidatorStub.isValid(body.getName())).thenReturn(false);
+		when(nameValidatorStub.isValid(any(String.class))).thenReturn(false);
 		
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
@@ -210,7 +187,6 @@ class AddUserControllerTests {
 		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
 		httpRequest.setBody(body);
 
-		when(nameValidatorStub.isValid(body.getName())).thenReturn(true);
 		when(emailValidatorStub.isValid(body.getEmail())).thenReturn(false);
 		
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
@@ -253,8 +229,7 @@ class AddUserControllerTests {
 		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
 		httpRequest.setBody(body);
 
-		when(nameValidatorStub.isValid(body.getName())).thenReturn(true);
-		when(emailValidatorStub.isValid(body.getEmail())).thenReturn(true);
+
 		when(cepValidatorStub.isValid(body.getCep())).thenReturn(false);
 		
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
@@ -276,8 +251,6 @@ class AddUserControllerTests {
 		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
 		httpRequest.setBody(body);
 
-		when(nameValidatorStub.isValid(body.getName())).thenReturn(true);
-		when(emailValidatorStub.isValid(body.getEmail())).thenReturn(true);
 		when(cepValidatorStub.isValid(body.getCep())).thenThrow(new Error());
 		
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
@@ -299,9 +272,7 @@ class AddUserControllerTests {
 		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
 		httpRequest.setBody(body);
 
-		when(nameValidatorStub.isValid(body.getName())).thenReturn(true);
-		when(emailValidatorStub.isValid(body.getEmail())).thenReturn(true);
-		when(cepValidatorStub.isValid(body.getCep())).thenReturn(true);
+		when(findUserStub.find(any(UserDTO.class))).thenReturn(FakeUser.makeFakeUser());
 		
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
