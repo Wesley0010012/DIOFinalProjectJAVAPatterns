@@ -3,6 +3,8 @@ package com.finalproject.dio.finaldioproject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -12,18 +14,29 @@ import org.springframework.http.ResponseEntity;
 
 import com.finalproject.dio.finaldioproject.data.dto.UserDTO;
 import com.finalproject.dio.finaldioproject.presentation.controllers.AddUserController;
+import com.finalproject.dio.finaldioproject.presentation.errors.InvalidParamError;
 import com.finalproject.dio.finaldioproject.presentation.errors.MissingParamError;
 import com.finalproject.dio.finaldioproject.presentation.helpers.HttpHelpers;
 import com.finalproject.dio.finaldioproject.presentation.protocols.HttpRequest;
+import com.finalproject.dio.finaldioproject.presentation.protocols.NameValidator;
+
+class NameValidatorStub implements NameValidator {
+	@Override
+	public boolean isValid(String name) {
+		return true;
+	}
+}
 
 @TestComponent
 class AddUserControllerTests {
 
-	private static AddUserController sut;
+	private static NameValidator nameValidatorStub = null;
+	private static AddUserController sut = null;
 
 	@BeforeAll
 	public static void setUp() {
-		sut = new AddUserController();
+		nameValidatorStub = mock(NameValidatorStub.class);
+		sut = new AddUserController(nameValidatorStub);
 	}
 
 	@Test
@@ -84,6 +97,27 @@ class AddUserControllerTests {
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
 		ResponseEntity<String> sample = HttpHelpers.badRequest(new MissingParamError("cep"));
+
+		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
+		assertEquals(sample.getBody(), httpResponse.getBody());
+	}
+
+	@Test
+	@DisplayName("Should return 400 if invalid name was provided")
+	void invalidNameProvided() {
+		UserDTO body = new UserDTO();
+		body.setName("invalid_name");
+		body.setEmail("any_email");
+		body.setCep("any_cep");
+
+		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
+		httpRequest.setBody(body);
+
+		when(nameValidatorStub.isValid(body.getName())).thenReturn(false);
+		
+		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
+
+		ResponseEntity<String> sample = HttpHelpers.badRequest(new InvalidParamError("name"));
 
 		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
 		assertEquals(sample.getBody(), httpResponse.getBody());
