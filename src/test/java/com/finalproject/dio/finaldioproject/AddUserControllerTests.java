@@ -43,6 +43,10 @@ class FakeUser {
 
 		return result;
 	}
+
+	public static UserModel makeEmptyUser() {
+		return new UserModel();
+	}
 }
 
 @TestComponent
@@ -69,6 +73,7 @@ class AddUserControllerTests {
 		when(nameValidatorStub.isValid(any(String.class))).thenReturn(true);
 		when(emailValidatorStub.isValid(any(String.class))).thenReturn(true);
 		when(cepValidatorStub.isValid(any(String.class))).thenReturn(true);
+		when(findUserStub.find(any(UserDTO.class))).thenReturn(FakeUser.makeEmptyUser());
 	}
 
 	@Test
@@ -277,6 +282,27 @@ class AddUserControllerTests {
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
 		ResponseEntity<String> sample = HttpHelpers.badRequest(new UserExistsError(body));
+
+		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
+		assertEquals(sample.getBody(), httpResponse.getBody());
+	}
+
+	@Test
+	@DisplayName("Should return 500 if FindUser throws")
+	void findUserThrows() {
+		UserDTO body = new UserDTO();
+		body.setName("any_name");
+		body.setEmail("any_name");
+		body.setCep("any_cep");
+
+		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
+		httpRequest.setBody(body);
+
+		when(findUserStub.find(any(UserDTO.class))).thenThrow(new Error());
+		
+		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
+
+		ResponseEntity<String> sample = HttpHelpers.internalServerError();
 
 		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
 		assertEquals(sample.getBody(), httpResponse.getBody());
