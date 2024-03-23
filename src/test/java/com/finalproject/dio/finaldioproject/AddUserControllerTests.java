@@ -175,4 +175,26 @@ class AddUserControllerTests {
 		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
 		assertEquals(sample.getBody(), httpResponse.getBody());
 	}
+
+	@Test
+	@DisplayName("Should return 500 if EmailValidator throws")
+	void emailValidatorThrows() {
+		UserDTO body = new UserDTO();
+		body.setName("any_name");
+		body.setEmail("invalid_email");
+		body.setCep("any_cep");
+
+		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
+		httpRequest.setBody(body);
+
+		when(nameValidatorStub.isValid(body.getName())).thenReturn(true);
+		when(emailValidatorStub.isValid(body.getEmail())).thenThrow(new Error());
+		
+		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
+
+		ResponseEntity<String> sample = HttpHelpers.internalServerError();
+
+		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
+		assertEquals(sample.getBody(), httpResponse.getBody());
+	}
 }
