@@ -44,4 +44,20 @@ class AddUserControllerTests {
 		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
 		assertEquals(sample.getBody(), httpResponse.getBody());
 	}
+
+    @Test
+	@DisplayName("Should return 400 if no email was provided")
+	void noEmailWasProvided() {
+		UserDTO httpRequest = new UserDTO();
+		httpRequest.setName("any_name");
+		httpRequest.setEmail("");
+		httpRequest.setCep("any_cep");
+		
+		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
+
+		ResponseEntity<String> sample = ResponseEntity.badRequest().body("Missing param: email");
+
+		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
+		assertEquals(sample.getBody(), httpResponse.getBody());
+	}
 }
