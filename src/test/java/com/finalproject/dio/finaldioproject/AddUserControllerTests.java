@@ -13,9 +13,13 @@ import org.springframework.boot.test.context.TestComponent;
 import org.springframework.http.ResponseEntity;
 
 import com.finalproject.dio.finaldioproject.data.dto.UserDTO;
+import com.finalproject.dio.finaldioproject.domain.models.CepModel;
+import com.finalproject.dio.finaldioproject.domain.models.UserModel;
+import com.finalproject.dio.finaldioproject.domain.usecases.FindUser;
 import com.finalproject.dio.finaldioproject.presentation.controllers.AddUserController;
 import com.finalproject.dio.finaldioproject.presentation.errors.InvalidParamError;
 import com.finalproject.dio.finaldioproject.presentation.errors.MissingParamError;
+import com.finalproject.dio.finaldioproject.presentation.errors.UserExistsError;
 import com.finalproject.dio.finaldioproject.presentation.helpers.HttpHelpers;
 import com.finalproject.dio.finaldioproject.presentation.protocols.CepValidator;
 import com.finalproject.dio.finaldioproject.presentation.protocols.EmailValidator;
@@ -43,6 +47,34 @@ class CepValidatorStub implements CepValidator {
 	}
 }
 
+class FakeUser {
+	public static UserModel makeFakeUser() {
+		UserModel result = new UserModel();
+		result.setId(1L);
+		result.setName("any_name");
+		result.setEmail("any_email");
+
+		CepModel cep = new CepModel();
+		cep.setCode("any_code");
+		cep.setCity("any_city");
+		cep.setState("any_state");
+		result.setCep(cep);
+
+		return result;
+	}
+}
+
+class FindUserStub implements FindUser {
+
+	@Override
+	public UserModel find(UserDTO user) {
+		UserModel result = FakeUser.makeFakeUser();
+
+		return result;
+	}
+	
+}
+
 @TestComponent
 class AddUserControllerTests {
 
@@ -50,13 +82,16 @@ class AddUserControllerTests {
 	private static AddUserController sut = null;
 	private static EmailValidator emailValidatorStub = null;
 	private static CepValidator cepValidatorStub = null;
+	private static FindUser findUserStub = null;
 
 	@BeforeAll
 	public static void setUp() {
 		nameValidatorStub = mock(NameValidatorStub.class);
 		emailValidatorStub = mock(EmailValidatorStub.class);
 		cepValidatorStub = mock(CepValidatorStub.class);
-		sut = new AddUserController(nameValidatorStub, emailValidatorStub, cepValidatorStub);
+		findUserStub = new FindUserStub();
+		
+		sut = new AddUserController(nameValidatorStub, emailValidatorStub, cepValidatorStub, findUserStub);
 	}
 
 	@Test
@@ -248,6 +283,29 @@ class AddUserControllerTests {
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
 		ResponseEntity<String> sample = HttpHelpers.internalServerError();
+		
+		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
+		assertEquals(sample.getBody(), httpResponse.getBody());
+	}
+
+	@Test
+	@DisplayName("Should return 400 if user exists")
+	void userExists() {
+		UserDTO body = new UserDTO();
+		body.setName("any_name");
+		body.setEmail("any_name");
+		body.setCep("any_cep");
+
+		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
+		httpRequest.setBody(body);
+
+		when(nameValidatorStub.isValid(body.getName())).thenReturn(true);
+		when(emailValidatorStub.isValid(body.getEmail())).thenReturn(true);
+		when(cepValidatorStub.isValid(body.getCep())).thenReturn(true);
+		
+		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
+
+		ResponseEntity<String> sample = HttpHelpers.badRequest(new UserExistsError(body));
 
 		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
 		assertEquals(sample.getBody(), httpResponse.getBody());
