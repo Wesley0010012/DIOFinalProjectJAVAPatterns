@@ -19,6 +19,10 @@ public class AddUserController implements Controller {
             return HttpHelpers.badRequest(new MissingParamError("email"));
         }
 
+        if (httpRequest.getCep() == null || httpRequest.getCep() == "") {
+            return HttpHelpers.badRequest(new MissingParamError("cep"));
+        }
+
         return ResponseEntity.ok().body("Passed all");
     }
     
