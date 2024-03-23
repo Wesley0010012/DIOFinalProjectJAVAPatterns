@@ -9,8 +9,11 @@ public class AddUserController implements Controller {
 
     @Override
     public ResponseEntity<String> handle(UserDTO httpRequest) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'handle'");
+        if (httpRequest.getName() == null || httpRequest.getName() == "") {
+            return ResponseEntity.badRequest().body("Missing param: name");
+        }
+
+        return ResponseEntity.ok().body("Passed all");
     }
     
 }
