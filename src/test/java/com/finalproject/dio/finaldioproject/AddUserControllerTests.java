@@ -17,6 +17,7 @@ import com.finalproject.dio.finaldioproject.presentation.controllers.AddUserCont
 import com.finalproject.dio.finaldioproject.presentation.errors.InvalidParamError;
 import com.finalproject.dio.finaldioproject.presentation.errors.MissingParamError;
 import com.finalproject.dio.finaldioproject.presentation.helpers.HttpHelpers;
+import com.finalproject.dio.finaldioproject.presentation.protocols.EmailValidator;
 import com.finalproject.dio.finaldioproject.presentation.protocols.HttpRequest;
 import com.finalproject.dio.finaldioproject.presentation.protocols.NameValidator;
 
@@ -27,16 +28,25 @@ class NameValidatorStub implements NameValidator {
 	}
 }
 
+class EmailValidatorStub implements EmailValidator {
+	@Override
+	public boolean isValid(String email) {
+		return true;
+	}
+}
+
 @TestComponent
 class AddUserControllerTests {
 
 	private static NameValidator nameValidatorStub = null;
 	private static AddUserController sut = null;
+	private static EmailValidator emailValidatorStub = null;
 
 	@BeforeAll
 	public static void setUp() {
 		nameValidatorStub = mock(NameValidatorStub.class);
-		sut = new AddUserController(nameValidatorStub);
+		emailValidatorStub = mock(EmailValidatorStub.class);
+		sut = new AddUserController(nameValidatorStub, emailValidatorStub);
 	}
 
 	@Test
@@ -139,6 +149,28 @@ class AddUserControllerTests {
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
 		ResponseEntity<String> sample = HttpHelpers.internalServerError();
+
+		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
+		assertEquals(sample.getBody(), httpResponse.getBody());
+	}
+
+	@Test
+	@DisplayName("Should return 400 if invalid email is provided")
+	void invalidEmailProvided() {
+		UserDTO body = new UserDTO();
+		body.setName("any_name");
+		body.setEmail("invalid_email");
+		body.setCep("any_cep");
+
+		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
+		httpRequest.setBody(body);
+
+		when(nameValidatorStub.isValid(body.getName())).thenReturn(true);
+		when(emailValidatorStub.isValid(body.getEmail())).thenReturn(false);
+		
+		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
+
+		ResponseEntity<String> sample = HttpHelpers.badRequest(new InvalidParamError("email"));
 
 		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
 		assertEquals(sample.getBody(), httpResponse.getBody());
