@@ -7,15 +7,18 @@ import com.finalproject.dio.finaldioproject.presentation.errors.InvalidParamErro
 import com.finalproject.dio.finaldioproject.presentation.errors.MissingParamError;
 import com.finalproject.dio.finaldioproject.presentation.helpers.HttpHelpers;
 import com.finalproject.dio.finaldioproject.presentation.protocols.Controller;
+import com.finalproject.dio.finaldioproject.presentation.protocols.EmailValidator;
 import com.finalproject.dio.finaldioproject.presentation.protocols.HttpRequest;
 import com.finalproject.dio.finaldioproject.presentation.protocols.NameValidator;
 
 public class AddUserController implements Controller<UserDTO> {
 
     private NameValidator nameValidator = null;
+    private EmailValidator emailValidator = null;
 
-    public AddUserController(NameValidator nameValidator) {
+    public AddUserController(NameValidator nameValidator, EmailValidator emailValidator) {
         this.nameValidator = nameValidator;
+        this.emailValidator = emailValidator;
     }
 
     @Override
@@ -39,6 +42,10 @@ public class AddUserController implements Controller<UserDTO> {
     
             if (!this.nameValidator.isValid(name)) {
                 return HttpHelpers.badRequest(new InvalidParamError("name"));
+            }
+
+            if (!this.emailValidator.isValid(email)) {
+                return HttpHelpers.badRequest(new InvalidParamError("email"));
             }
     
             return ResponseEntity.ok().body("Passed all");
