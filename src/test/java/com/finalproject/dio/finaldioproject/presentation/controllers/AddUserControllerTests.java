@@ -20,7 +20,6 @@ import com.finalproject.dio.finaldioproject.domain.models.CepModel;
 import com.finalproject.dio.finaldioproject.domain.models.UserModel;
 import com.finalproject.dio.finaldioproject.domain.usecases.AddUser;
 import com.finalproject.dio.finaldioproject.domain.usecases.FindUser;
-import com.finalproject.dio.finaldioproject.presentation.controllers.AddUserController;
 import com.finalproject.dio.finaldioproject.presentation.errors.CepNotFoundedError;
 import com.finalproject.dio.finaldioproject.presentation.errors.InvalidParamError;
 import com.finalproject.dio.finaldioproject.presentation.errors.MissingParamError;
