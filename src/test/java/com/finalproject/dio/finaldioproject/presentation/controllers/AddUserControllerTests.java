@@ -1,4 +1,4 @@
-package com.finalproject.dio.finaldioproject;
+package com.finalproject.dio.finaldioproject.presentation.controllers;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
