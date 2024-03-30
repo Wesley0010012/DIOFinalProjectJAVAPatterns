@@ -17,6 +17,7 @@ import com.finalproject.dio.finaldioproject.presentation.protocols.Controller;
 import com.finalproject.dio.finaldioproject.presentation.protocols.EmailValidator;
 import com.finalproject.dio.finaldioproject.presentation.protocols.FindCepProxy;
 import com.finalproject.dio.finaldioproject.presentation.protocols.HttpRequest;
+import com.finalproject.dio.finaldioproject.presentation.protocols.JsonConverter;
 import com.finalproject.dio.finaldioproject.presentation.protocols.NameValidator;
 
 public class AddUserController implements Controller<UserDTO> {
@@ -27,8 +28,9 @@ public class AddUserController implements Controller<UserDTO> {
     private FindUser findUser = null;
     private FindCepProxy findCepProxy = null;
     private AddUser addUser = null;
+    private JsonConverter<UserModel> jsonConverter;
 
-    public AddUserController(NameValidator nameValidator, EmailValidator emailValidator, CepValidator cepValidator, FindUser findUser, FindCepProxy findCepProxy, AddUser addUser) {
+    public AddUserController(NameValidator nameValidator, EmailValidator emailValidator, CepValidator cepValidator, FindUser findUser, FindCepProxy findCepProxy, AddUser addUser, JsonConverter<UserModel> jsonConverter) {
         this.nameValidator = nameValidator;
         this.emailValidator = emailValidator;
         this.cepValidator = cepValidator;
@@ -84,6 +86,8 @@ public class AddUserController implements Controller<UserDTO> {
             }
 
             UserModel result = this.addUser.add(tempUser, cepDTO);
+
+            this.jsonConverter.convert(result);
 
             return ResponseEntity.ok().body("Passed all");
         } catch(Error e) {
