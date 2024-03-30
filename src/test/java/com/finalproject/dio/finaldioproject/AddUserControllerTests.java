@@ -30,6 +30,7 @@ import com.finalproject.dio.finaldioproject.presentation.protocols.CepValidator;
 import com.finalproject.dio.finaldioproject.presentation.protocols.EmailValidator;
 import com.finalproject.dio.finaldioproject.presentation.protocols.FindCepProxy;
 import com.finalproject.dio.finaldioproject.presentation.protocols.HttpRequest;
+import com.finalproject.dio.finaldioproject.presentation.protocols.JsonConverter;
 import com.finalproject.dio.finaldioproject.presentation.protocols.NameValidator;
 
 class FakeUser {
@@ -44,6 +45,22 @@ class FakeUser {
 		cep.setCode("any_code");
 		cep.setCity("any_city");
 		cep.setState("any_state");
+		result.setCep(cep);
+
+		return result;
+	}
+
+	public static UserModel makeFakeValidUser() {
+		UserModel result = new UserModel();
+		result.setId(1L);
+		result.setName("valid_name");
+		result.setEmail("valid_email");
+
+		CepModel cep = new CepModel();
+		cep.setId(1L);
+		cep.setCode("valid_code");
+		cep.setCity("valid_city");
+		cep.setState("valid_state");
 		result.setCep(cep);
 
 		return result;
@@ -79,7 +96,9 @@ class AddUserControllerTests {
 	private static FindUser findUserStub = null;
 	private static FindCepProxy findCepProxyStub = null;
 	private static AddUser addUserStub = null;
+	private static JsonConverter<UserModel> jsonConverter = null;
 
+	@SuppressWarnings("unchecked")
 	@BeforeAll
 	public static void setUp() {
 		nameValidatorStub = mock(NameValidator.class);
@@ -88,8 +107,9 @@ class AddUserControllerTests {
 		findUserStub = mock(FindUser.class);
 		findCepProxyStub = mock(FindCepProxy.class);
 		addUserStub = mock(AddUser.class);
+		jsonConverter = mock(JsonConverter.class);
 		
-		sut = new AddUserController(nameValidatorStub, emailValidatorStub, cepValidatorStub, findUserStub, findCepProxyStub, addUserStub);
+		sut = new AddUserController(nameValidatorStub, emailValidatorStub, cepValidatorStub, findUserStub, findCepProxyStub, addUserStub, jsonConverter);
 	}
 
 	@BeforeEach
@@ -99,6 +119,7 @@ class AddUserControllerTests {
 		when(cepValidatorStub.isValid(any(String.class))).thenReturn(true);
 		when(findUserStub.find(any(UserDTO.class))).thenReturn(FakeUser.makeEmptyUser());
 		when(findCepProxyStub.find(any(String.class))).thenReturn(FakeCep.makeFakeCep());
+		when(addUserStub.add(any(UserDTO.class), any(CepDTO.class))).thenReturn(FakeUser.makeFakeValidUser());
 	}
 
 	@Test
@@ -387,6 +408,27 @@ class AddUserControllerTests {
 		httpRequest.setBody(body);
 
 		when(addUserStub.add(any(UserDTO.class), any(CepDTO.class))).thenThrow(new Error());
+
+		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
+
+		ResponseEntity<String> sample = HttpHelpers.internalServerError();
+
+		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
+		assertEquals(sample.getBody(), httpResponse.getBody());
+	}
+
+	@Test
+	@DisplayName("Should return 500 if JsonConverter throws")
+	void jsonConverterThrows() {
+		UserDTO body = new UserDTO();
+		body.setName("any_name");
+		body.setEmail("any_name");
+		body.setCep("any_cep");
+
+		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
+		httpRequest.setBody(body);
+
+		when(jsonConverter.convert(any(UserModel.class))).thenThrow(new Error());
 
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
