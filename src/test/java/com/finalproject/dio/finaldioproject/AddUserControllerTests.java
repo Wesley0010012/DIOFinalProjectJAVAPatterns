@@ -18,6 +18,7 @@ import com.finalproject.dio.finaldioproject.data.dto.CepDTO;
 import com.finalproject.dio.finaldioproject.data.dto.UserDTO;
 import com.finalproject.dio.finaldioproject.domain.models.CepModel;
 import com.finalproject.dio.finaldioproject.domain.models.UserModel;
+import com.finalproject.dio.finaldioproject.domain.usecases.AddUser;
 import com.finalproject.dio.finaldioproject.domain.usecases.FindUser;
 import com.finalproject.dio.finaldioproject.presentation.controllers.AddUserController;
 import com.finalproject.dio.finaldioproject.presentation.errors.CepNotFoundedError;
@@ -77,6 +78,7 @@ class AddUserControllerTests {
 	private static CepValidator cepValidatorStub = null;
 	private static FindUser findUserStub = null;
 	private static FindCepProxy findCepProxyStub = null;
+	private static AddUser addUserStub = null;
 
 	@BeforeAll
 	public static void setUp() {
@@ -85,8 +87,9 @@ class AddUserControllerTests {
 		cepValidatorStub = mock(CepValidator.class);
 		findUserStub = mock(FindUser.class);
 		findCepProxyStub = mock(FindCepProxy.class);
+		addUserStub = mock(AddUser.class);
 		
-		sut = new AddUserController(nameValidatorStub, emailValidatorStub, cepValidatorStub, findUserStub, findCepProxyStub);
+		sut = new AddUserController(nameValidatorStub, emailValidatorStub, cepValidatorStub, findUserStub, findCepProxyStub, addUserStub);
 	}
 
 	@BeforeEach
@@ -363,6 +366,27 @@ class AddUserControllerTests {
 		httpRequest.setBody(body);
 
 		when(findCepProxyStub.find(any(String.class))).thenThrow(new Error());
+
+		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
+
+		ResponseEntity<String> sample = HttpHelpers.internalServerError();
+
+		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
+		assertEquals(sample.getBody(), httpResponse.getBody());
+	}
+
+	@Test
+	@DisplayName("Should return 500 if AddUser throws")
+	void addUserThrows() {
+		UserDTO body = new UserDTO();
+		body.setName("any_name");
+		body.setEmail("any_name");
+		body.setCep("any_cep");
+
+		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
+		httpRequest.setBody(body);
+
+		when(addUserStub.add(any(UserDTO.class), any(CepDTO.class))).thenThrow(new Error());
 
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
