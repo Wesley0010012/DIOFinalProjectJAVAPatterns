@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import com.finalproject.dio.finaldioproject.data.dto.CepDTO;
 import com.finalproject.dio.finaldioproject.data.dto.UserDTO;
 import com.finalproject.dio.finaldioproject.domain.models.UserModel;
+import com.finalproject.dio.finaldioproject.domain.usecases.AddUser;
 import com.finalproject.dio.finaldioproject.domain.usecases.FindUser;
 import com.finalproject.dio.finaldioproject.presentation.errors.CepNotFoundedError;
 import com.finalproject.dio.finaldioproject.presentation.errors.InvalidParamError;
@@ -25,13 +26,15 @@ public class AddUserController implements Controller<UserDTO> {
     private CepValidator cepValidator = null;
     private FindUser findUser = null;
     private FindCepProxy findCepProxy = null;
+    private AddUser addUser = null;
 
-    public AddUserController(NameValidator nameValidator, EmailValidator emailValidator, CepValidator cepValidator, FindUser findUser, FindCepProxy findCepProxy) {
+    public AddUserController(NameValidator nameValidator, EmailValidator emailValidator, CepValidator cepValidator, FindUser findUser, FindCepProxy findCepProxy, AddUser addUser) {
         this.nameValidator = nameValidator;
         this.emailValidator = emailValidator;
         this.cepValidator = cepValidator;
         this.findUser = findUser;
         this.findCepProxy = findCepProxy;
+        this.addUser = addUser;
     }
 
     @Override
@@ -79,6 +82,8 @@ public class AddUserController implements Controller<UserDTO> {
             if (cepDTO == null) {
                 return HttpHelpers.badRequest(new CepNotFoundedError(cep));
             }
+
+            UserModel result = this.addUser.add(tempUser, cepDTO);
 
             return ResponseEntity.ok().body("Passed all");
         } catch(Error e) {
