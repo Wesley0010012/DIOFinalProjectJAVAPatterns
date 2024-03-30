@@ -37,6 +37,7 @@ public class AddUserController implements Controller<UserDTO> {
         this.findUser = findUser;
         this.findCepProxy = findCepProxy;
         this.addUser = addUser;
+        this.jsonConverter = jsonConverter;
     }
 
     @Override
@@ -87,9 +88,9 @@ public class AddUserController implements Controller<UserDTO> {
 
             UserModel result = this.addUser.add(tempUser, cepDTO);
 
-            this.jsonConverter.convert(result);
+            String response = this.jsonConverter.convert(result);
 
-            return ResponseEntity.ok().body("Passed all");
+            return ResponseEntity.ok().body(response);
         } catch(Error e) {
             return HttpHelpers.internalServerError();
         } catch(Exception e) {

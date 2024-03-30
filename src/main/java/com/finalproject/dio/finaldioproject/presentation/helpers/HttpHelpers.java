@@ -12,4 +12,8 @@ public class HttpHelpers {
     public static ResponseEntity<String> internalServerError() {
         return ResponseEntity.internalServerError().body(new InternalServerError().getMessage());
     }
+
+    public static ResponseEntity<String> success(String data) {
+        return ResponseEntity.ok().body(data);
+    }
 }
