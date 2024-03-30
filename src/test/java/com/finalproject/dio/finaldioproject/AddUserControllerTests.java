@@ -86,6 +86,12 @@ class FakeCep {
 	}
 }
 
+class FakeJson {
+	public static String makeFakeJson() {
+		return "{\"id\": \"1\",\"name\": \"valid_name\",\"email\": \"valid_email\",\"cep\": {\"id\": 1,\"code\": \"valid_code\",\"city\": \"valid_city\",\"state\": \"valid_state\"}}";
+	}
+}
+
 @TestComponent
 class AddUserControllerTests {
 
@@ -120,6 +126,7 @@ class AddUserControllerTests {
 		when(findUserStub.find(any(UserDTO.class))).thenReturn(FakeUser.makeEmptyUser());
 		when(findCepProxyStub.find(any(String.class))).thenReturn(FakeCep.makeFakeCep());
 		when(addUserStub.add(any(UserDTO.class), any(CepDTO.class))).thenReturn(FakeUser.makeFakeValidUser());
+		when(jsonConverter.convert(any(UserModel.class))).thenReturn(FakeJson.makeFakeJson());
 	}
 
 	@Test
@@ -433,6 +440,25 @@ class AddUserControllerTests {
 		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
 
 		ResponseEntity<String> sample = HttpHelpers.internalServerError();
+
+		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
+		assertEquals(sample.getBody(), httpResponse.getBody());
+	}
+
+	@Test
+	@DisplayName("Should return an Account on success")
+	void success() {
+		UserDTO body = new UserDTO();
+		body.setName("valid_name");
+		body.setEmail("valid_email");
+		body.setCep("valid_cep");
+
+		HttpRequest<UserDTO> httpRequest = new HttpRequest<UserDTO>();
+		httpRequest.setBody(body);
+
+		ResponseEntity<String> httpResponse = sut.handle(httpRequest);
+
+		ResponseEntity<String> sample = HttpHelpers.success(FakeJson.makeFakeJson());
 
 		assertEquals(sample.getStatusCode(), httpResponse.getStatusCode());
 		assertEquals(sample.getBody(), httpResponse.getBody());
