@@ -1,4 +1,4 @@
-package com.finalproject.dio.config;
+package com.finalproject.dio.finaldioproject.config;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
