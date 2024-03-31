@@ -20,9 +20,9 @@ public class DbFindUser implements FindUser {
     public UserModel find(UserDTO user) {
         UserModel userModel = this.modelMapperExecuter.convert(user);
 
-        this.findUserRepository.find(userModel);
+        UserModel result = this.findUserRepository.find(userModel);
 
-        return new UserModel();
+        return result;
     }
     
 }
