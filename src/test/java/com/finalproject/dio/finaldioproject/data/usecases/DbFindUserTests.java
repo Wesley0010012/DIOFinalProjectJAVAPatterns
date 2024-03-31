@@ -1,5 +1,6 @@
 package com.finalproject.dio.finaldioproject.data.usecases;
 
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -80,5 +81,16 @@ public class DbFindUserTests {
         when(findUserRepositoryStub.find(any(UserModel.class))).thenThrow(new Error());
 
         assertThrows(Error.class, () -> sut.find(FakeUser.makeFakeUserDTO()));
+    }
+
+    @Test
+    @DisplayName("Should return an Empty object if user not founded")
+    public void userNotFounded() {
+
+        when(findUserRepositoryStub.find(any(UserModel.class))).thenReturn(null);
+
+        UserModel result = this.sut.find(FakeUser.makeFakeUserDTO());
+
+        assertSame(null, result);
     }
 }
