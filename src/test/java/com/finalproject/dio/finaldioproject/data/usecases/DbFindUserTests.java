@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.TestComponent;
@@ -13,6 +14,7 @@ import org.springframework.boot.test.context.TestComponent;
 import com.finalproject.dio.finaldioproject.data.dto.UserDTO;
 import com.finalproject.dio.finaldioproject.data.protocols.FindUserRepository;
 import com.finalproject.dio.finaldioproject.data.protocols.ModelMapperExecuter;
+import com.finalproject.dio.finaldioproject.domain.models.CepModel;
 import com.finalproject.dio.finaldioproject.domain.models.UserModel;
 
 class FakeUser {
@@ -23,6 +25,22 @@ class FakeUser {
         user.setCep("any_cep");
 
         return user;
+    }
+
+    public static UserModel makeFakeUser() {
+        UserModel result = new UserModel();
+		result.setId(1L);
+		result.setName("valid_name");
+		result.setEmail("valid_email");
+
+		CepModel cep = new CepModel();
+		cep.setId(1L);
+		cep.setCode("valid_code");
+		cep.setCity("valid_city");
+		cep.setState("valid_state");
+		result.setCep(cep);
+
+		return result;
     }
 }
 
@@ -40,11 +58,26 @@ public class DbFindUserTests {
         sut = new DbFindUser(findUserRepositoryStub, modelMapperStub);
     }
 
+    @BeforeEach
+    public void resetMocks() {
+        when(modelMapperStub.convert(any(UserDTO.class))).thenReturn(FakeUser.makeFakeUser());
+    }
+
     @Test
     @DisplayName("Should call ModelMapperExecuter with correct UserDTO")
     public void modelMapperExecuterThrows() {
 
         when(modelMapperStub.convert(any(UserDTO.class))).thenThrow(new Error());
+
+        assertThrows(Error.class, () -> sut.find(FakeUser.makeFakeUserDTO()));
+    }
+
+
+    @Test
+    @DisplayName("Should throw Error if AddUserRepository throws")
+    public void findUserRepositoryThrows() {
+
+        when(findUserRepositoryStub.find(any(UserModel.class))).thenThrow(new Error());
 
         assertThrows(Error.class, () -> sut.find(FakeUser.makeFakeUserDTO()));
     }
