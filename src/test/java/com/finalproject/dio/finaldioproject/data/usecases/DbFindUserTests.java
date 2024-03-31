@@ -41,8 +41,8 @@ public class DbFindUserTests {
     }
 
     @Test
-    @DisplayName("Should throw Error if ModelMapper throws")
-    public void findUserRepositoryThrows() {
+    @DisplayName("Should call ModelMapperExecuter with correct UserDTO")
+    public void modelMapperExecuterThrows() {
 
         when(modelMapperStub.convert(any(UserDTO.class))).thenThrow(new Error());
 
