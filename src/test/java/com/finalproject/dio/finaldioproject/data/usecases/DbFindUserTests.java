@@ -1,5 +1,6 @@
 package com.finalproject.dio.finaldioproject.data.usecases;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -89,8 +90,27 @@ public class DbFindUserTests {
 
         when(findUserRepositoryStub.find(any(UserModel.class))).thenReturn(null);
 
-        UserModel result = this.sut.find(FakeUser.makeFakeUserDTO());
+        UserModel result = sut.find(FakeUser.makeFakeUserDTO());
 
         assertSame(null, result);
+    }
+
+    @Test
+    @DisplayName("Should return the correct UserModel if user was founded")
+    public void userFounded() {
+
+        when(findUserRepositoryStub.find(any(UserModel.class))).thenReturn(FakeUser.makeFakeUser());
+
+        UserModel result = sut.find(FakeUser.makeFakeUserDTO());
+
+        UserModel sample = FakeUser.makeFakeUser();
+
+        assertEquals(sample.getId(), result.getId());
+        assertEquals(sample.getName(), result.getName());
+        assertEquals(sample.getEmail(), result.getEmail());
+        assertEquals(sample.getCep().getId(), result.getCep().getId());
+        assertEquals(sample.getCep().getCode(), result.getCep().getCode());
+        assertEquals(sample.getCep().getCity(), result.getCep().getCity());
+        assertEquals(sample.getCep().getState(), result.getCep().getState());
     }
 }
