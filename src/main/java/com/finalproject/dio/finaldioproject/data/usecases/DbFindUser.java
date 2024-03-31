@@ -18,7 +18,9 @@ public class DbFindUser implements FindUser {
 
     @Override
     public UserModel find(UserDTO user) {
-        this.modelMapperExecuter.convert(user);
+        UserModel userModel = this.modelMapperExecuter.convert(user);
+
+        this.findUserRepository.find(userModel);
 
         return new UserModel();
     }
