@@ -22,7 +22,9 @@ public class DbAddUser implements AddUser {
 
     @Override
     public UserModel add(UserDTO user, CepDTO cep) {
-        this.userModelMapperExecuter.convert(user);
+        UserModel userModel = this.userModelMapperExecuter.convert(user);
+
+        this.cepModelMapperExecuter.convert(cep);
 
         return new UserModel();
     }
