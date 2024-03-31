@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -22,6 +23,14 @@ class FakeUser {
         user.setName("any_name");
         user.setEmail("any_email");
         user.setCep("any_cep");
+
+        return user;
+    }
+
+    public static UserModel makeFakeAddUserModel() {
+        UserModel user = new UserModel();
+        user.setName("valid_name");
+        user.setEmail("valid_email");
 
         return user;
     }
@@ -54,10 +63,23 @@ public class DbAddUserTests {
         sut = new DbAddUser(userRepositoryStub, userModelMapperExecuterStub, cepModelMapperExecuterStub);
     }
 
+    @BeforeEach
+    public void resetMocks() {
+        when(userModelMapperExecuterStub.convert(any(UserDTO.class))).thenReturn(FakeUser.makeFakeAddUserModel());
+    }
+
     @Test
     @DisplayName("Should throw if UserModelMapperExecuter throws")
     public void userModelMapperExecuterThrows() {
         when(userModelMapperExecuterStub.convert(any(UserDTO.class))).thenThrow(new Error());
+
+        assertThrows(Error.class, () -> sut.add(FakeUser.makeFakeUserDTO(), FakeCep.makeFakeCepDTO()));
+    }
+
+    @Test
+    @DisplayName("Should throw if CepModelMapperExecuter throws")
+    public void cepModelMapperExecuterThrows() {
+        when(cepModelMapperExecuterStub.convert(any(CepDTO.class))).thenThrow(new Error());
 
         assertThrows(Error.class, () -> sut.add(FakeUser.makeFakeUserDTO(), FakeCep.makeFakeCepDTO()));
     }
